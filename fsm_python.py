@@ -22,9 +22,6 @@ def fms(alph):
 """
 
 from pythonds import Stack
-from collections import deque
-
-operators = { "*":1, "|":1}
 
 ##==========================================================
 class Tree(object):
@@ -92,6 +89,7 @@ def parseTree(pattern):
 
     return exprStack.pop()
 
+
 ##==========================================================
 def traverse(tr):
     thislevel = [tr]
@@ -111,47 +109,74 @@ def starCheck(leaf, test):
     else:
         return False
 
-def check(template, pattern):
-    tree = parseTree(pattern)
-    ls_check = []
-    ret = False
-    curTree = tree
-    index = 0
-    while curTree:
-       curData = curTree.data
-       if curData is "*":
-           leaf = curTree.getLeftChild()
-           while leaf is template[index:index+len(leaf)]:
-               index += len(leaf)
-               ls_check.append(1)
-           curTree = curTree.right
-           curData = curTree.data
-       elif curData is "|":
-           var_1 = curTree.getLeftChild()
-           var_2 = curTree.getRightChild()
-           if template[index] is var_1 or template[index] is var_2:
-               ls_check.append(1)
-               print template[index]
-               curTree = curTree.right
-               curData = curTree.data
-       elif curData is template[index:index+len(curData)]:
-           ls_check.append(1)
-           curTree = curTree.right
-       else: break
+def checkPipe(l, r, test):
+    if test is l or test is r:
+        return test
+    else:
+        return False
 
-    if len(ls_check) == len(template):
-        return True
-    return False
+def inOrder(root, test):
+    current = root
+    s = []
+    groups = Stack()
+    res = []
+    #e1, e2, op = "", "", ""
+    done = 0
+    i, gap = 0, 0
+    while (not done):
+        if current is not None:
+            s.append(current)
+            current = current.left
+        else:
+            if (len(s) > 0):
+                current = s.pop()
+                if current.data is "*":
+                    print "{", current.data, "}",
+                    if groups.size() != 0:
+                        left = groups.peek()
+                        while starCheck(left, test[i:i + len(left)]):
+                            res.append(test[i:i + len(left)])
+                            i += len(left)
+                    print res, i
+                    right = current.right.data
+                    if right is test[i]:
+                        if groups.size() != 0:
+                            e1 = groups.peek()
+                            e2 = right
+                            groups.push(e1 + e2)
+                            i += 1
+                            res.append(right)
 
 
+                elif current.data is "|":
+                    print "[", current.data, "]",
+                    left = current.left.data
+                    right = current.right.data
+                    if left is test[i:i + len(left)] or right is test[i]:
+                        res.append(test[i])
+                        groups.push(res[-1])
+                        i += len(left)
+                    print res, i
+
+                else:
+                    print current.data,
+                    if groups.size() == 0:
+                        groups.push(current.data)
+
+                current = current.right
+            else:
+                done = 1
+    return "".join(res)
 
 
 
 #=============
-input = "AAAAAC"
-patt = "( ( ( C | B ) * C ) * A )"
+input = "BBC"
+patt = "( ( A | B ) * C )"
 t = parseTree(patt)
 traverse(t)
+ans = inOrder(t, input)
+print "here", ans
 #print check(input, patt)
 
 
