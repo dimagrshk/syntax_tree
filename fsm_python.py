@@ -21,13 +21,17 @@ def fms(alph):
     return ls
 """
 
+from pythonds import Stack
+from collections import deque
 
+operators = { "*":1, "|":1}
+
+##==========================================================
 class Tree(object):
-    def __init__(self):
-        self.data = None
-        self.right = None
-        self.left = None
-        #self.children = [self.left, self.right]
+    def __init__(self, data = None, left = None, right = None):
+        self.data = data
+        self.right = right
+        self.left = left
 
     def insertLeft(self, data_left = None):
         self.left = Tree()
@@ -43,36 +47,52 @@ class Tree(object):
     def getRightChild(self):
         return self.right.data
 
+    def ExprNode(self, data):
+        self.data = data
+        self.right = None
+        self.left = None
 
 
 
-def buildTree(pattern):
+##==========================================================
+
+def parseTree(pattern):
     pattern = pattern.split()
     tree = Tree()
-    cur_tree = tree
-    parent_list = []
+    operatorStack = Stack()
+    exprStack = Stack()
     for i in pattern:
+        #print i
         if i is "(":
-            cur_tree.insertLeft("")
-            parent_list.append(cur_tree)
-            cur_tree = cur_tree.left
-        elif i not in ["*", "|", ")"]:
-            cur_tree.data = i
-            parent = parent_list[-1]
-            cur_tree = parent
+            operatorStack.push(i)
+
+        elif i in ["A", "B", "D", "C"]:
+            exprStack.push(Tree(i))
+
         elif i in ["*", "|"]:
-            cur_tree.data = i
-            cur_tree.insertRight("")
-            parent_list.append(cur_tree)
-            cur_tree = cur_tree.right
+            if operatorStack.size() == 0:
+                operator = operatorStack.pop()
+                e2 = exprStack.pop()
+                e1 = exprStack.pop()
+                exprStack.push(Tree(operator, e1, e2))
+
+            operatorStack.push(i)
+
         elif i is ")":
-            cur_tree = parent_list[-1]
+            while operatorStack.peek() is not "(":
+                operator = operatorStack.pop()
+
+                e2 = exprStack.pop()
+                e1 = exprStack.pop()
+                exprStack.push(Tree(operator, e1, e2))
+            operatorStack.pop()
+
         else:
             raise ValueError
-    return tree
 
+    return exprStack.pop()
 
-
+##==========================================================
 def traverse(tr):
     thislevel = [tr]
     while thislevel:
@@ -84,7 +104,7 @@ def traverse(tr):
         print
         thislevel = nextlevel
 
-
+##==========================================================
 def starCheck(leaf, test):
     if leaf is test:
         return True
@@ -92,7 +112,7 @@ def starCheck(leaf, test):
         return False
 
 def check(template, pattern):
-    tree = buildTree(pattern)
+    tree = parseTree(pattern)
     ls_check = []
     ret = False
     curTree = tree
@@ -106,6 +126,14 @@ def check(template, pattern):
                ls_check.append(1)
            curTree = curTree.right
            curData = curTree.data
+       elif curData is "|":
+           var_1 = curTree.getLeftChild()
+           var_2 = curTree.getRightChild()
+           if template[index] is var_1 or template[index] is var_2:
+               ls_check.append(1)
+               print template[index]
+               curTree = curTree.right
+               curData = curTree.data
        elif curData is template[index:index+len(curData)]:
            ls_check.append(1)
            curTree = curTree.right
@@ -118,9 +146,12 @@ def check(template, pattern):
 
 
 
+
 #=============
-input = "AAAAAB"
-patt = "( A * B )"
-t = buildTree(patt)
+input = "AAAAAC"
+patt = "( ( ( C | B ) * C ) * A )"
+t = parseTree(patt)
 traverse(t)
-print check(input, patt)
+#print check(input, patt)
+
+
