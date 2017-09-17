@@ -120,9 +120,8 @@ def inOrder(root, test):
     s = []
     groups = Stack()
     res = []
-    #e1, e2, op = "", "", ""
     done = 0
-    i, gap = 0, 0
+    i= 0
     while (not done):
         if current is not None:
             s.append(current)
@@ -130,38 +129,54 @@ def inOrder(root, test):
         else:
             if (len(s) > 0):
                 current = s.pop()
-                if current.data is "*":
+                if current.data == "*":
                     print "{", current.data, "}",
+                    #f = False
+                    if groups.size() == 0:
+                        left = current.left.data
+                        right = current.right.data
+                        while left == test[i:i+len(left)]:
+                            res.append(test[i:i+len(left)])
+                            i += len(left)
+                            #f = True
+                        if right == test[i:i+len(right)]:
+                            res.append(test[i:i+len(right)])
+                            i+=len(right)
+                        elif right == "|":
+                            current = current.right
+                            continue
+
+                        groups.push(left+right)
+
                     if groups.size() != 0:
                         left = groups.peek()
-                        while starCheck(left, test[i:i + len(left)]):
-                            res.append(test[i:i + len(left)])
+                        right = current.right.data
+                        while left == test[i:i+len(left)]:
+                            res.append(test[i:i+len(left)])
                             i += len(left)
-                    print res, i
-                    right = current.right.data
-                    if right is test[i]:
-                        if groups.size() != 0:
-                            e1 = groups.peek()
-                            e2 = right
-                            groups.push(e1 + e2)
-                            i += 1
-                            res.append(right)
+                            #f = True
+                        if right == test[i:i+len(right)]:
+                            res.append(test[i:i+len(right)])
+                            i+=len(right)
+                        groups.push(left+right)
 
-
-                elif current.data is "|":
+                elif current.data == "|":
                     print "[", current.data, "]",
-                    left = current.left.data
-                    right = current.right.data
-                    if left is test[i:i + len(left)] or right is test[i]:
-                        res.append(test[i])
-                        groups.push(res[-1])
-                        i += len(left)
-                    print res, i
+                    if groups.size() == 0:
+                        left = current.left.data
+                        right = current.right.data
+                        if right == test[i:i+len(right)]:
+                            groups.push(test[i:i+len(right)])
+                            res.append(test[i:i+len(right)])
+                            i += len(test[i:i+len(right)])
+
+                        elif left == test[i:i+len(left)]:
+                            groups.push(test[i:i+len(left)])
+                            res.append(test[i:i+len(left)])
+                            i += len(test[i:i+len(left)])
 
                 else:
                     print current.data,
-                    if groups.size() == 0:
-                        groups.push(current.data)
 
                 current = current.right
             else:
@@ -171,8 +186,8 @@ def inOrder(root, test):
 
 
 #=============
-input = "BBC"
-patt = "( ( A | B ) * C )"
+input = "BCBCA"
+patt = "( ( ( C | B ) * C ) * A )"
 t = parseTree(patt)
 traverse(t)
 ans = inOrder(t, input)
