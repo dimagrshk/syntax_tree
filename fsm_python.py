@@ -23,6 +23,8 @@ def fms(alph):
 
 from pythonds import Stack
 
+operators = ["*", "|"]
+
 ##==========================================================
 class Tree(object):
     def __init__(self, data = None, left = None, right = None):
@@ -44,10 +46,6 @@ class Tree(object):
     def getRightChild(self):
         return self.right.data
 
-    def ExprNode(self, data):
-        self.data = data
-        self.right = None
-        self.left = None
 
 
 
@@ -103,17 +101,6 @@ def traverse(tr):
         thislevel = nextlevel
 
 ##==========================================================
-def starCheck(leaf, test):
-    if leaf is test:
-        return True
-    else:
-        return False
-
-def checkPipe(l, r, test):
-    if test is l or test is r:
-        return test
-    else:
-        return False
 
 def inOrder(root, test):
     current = root
@@ -123,6 +110,7 @@ def inOrder(root, test):
     done = 0
     i= 0
     while (not done):
+
         if current is not None:
             s.append(current)
             current = current.left
@@ -130,53 +118,68 @@ def inOrder(root, test):
             if (len(s) > 0):
                 current = s.pop()
                 if current.data == "*":
-                    print "{", current.data, "}",
-                    #f = False
+                    left_res, right_res = "", ""
                     if groups.size() == 0:
                         left = current.left.data
+                        left_res = left
+                        right = current.right.data
+                        while left == test[i:i+len(left)]:
+                            res.append(test[i:i+len(left)])
+                            left_res += left
+                            i += len(left)
+                        else:
+                            left = ""
+
+                        if right == test[i:i+len(right)]:
+                            res.append(test[i:i+len(right)])
+                            right = test[i:i+len(right)]
+                            i+=len(right)
+                        elif test[i:i+len(right)] == "":
+                            return False
+                        elif right == "|":
+                            current = current.right
+                            continue
+
+                        groups.push(left_res+right)
+
+                    else:
+                        left = groups.peek()
+                        left_res = left
                         right = current.right.data
                         while left == test[i:i+len(left)]:
                             res.append(test[i:i+len(left)])
                             i += len(left)
-                            #f = True
+                            left_res += left
+                        print test[i:i+len(right)]
                         if right == test[i:i+len(right)]:
                             res.append(test[i:i+len(right)])
                             i+=len(right)
                         elif right == "|":
                             current = current.right
                             continue
+                        elif test[i:i+len(right)] == "":
+                            return False
 
-                        groups.push(left+right)
-
-                    if groups.size() != 0:
-                        left = groups.peek()
-                        right = current.right.data
-                        while left == test[i:i+len(left)]:
-                            res.append(test[i:i+len(left)])
-                            i += len(left)
-                            #f = True
-                        if right == test[i:i+len(right)]:
-                            res.append(test[i:i+len(right)])
-                            i+=len(right)
-                        groups.push(left+right)
+                        groups.push(left_res+right)
 
                 elif current.data == "|":
-                    print "[", current.data, "]",
+                    left = None
+                    right = None
                     if groups.size() == 0:
                         left = current.left.data
                         right = current.right.data
-                        if right == test[i:i+len(right)]:
-                            groups.push(test[i:i+len(right)])
-                            res.append(test[i:i+len(right)])
-                            i += len(test[i:i+len(right)])
+                    else:
+                        left = groups.peek()
+                        right = current.right.data
 
-                        elif left == test[i:i+len(left)]:
-                            groups.push(test[i:i+len(left)])
-                            res.append(test[i:i+len(left)])
-                            i += len(test[i:i+len(left)])
-
-                else:
-                    print current.data,
+                    if right == test[i:i+len(right)]:
+                        groups.push(test[i:i+len(right)])
+                        res.append(test[i:i+len(right)])
+                        i += len(test[i:i+len(right)])
+                    elif left == test[i:i+len(left)]:
+                        groups.push(test[i:i+len(left)])
+                        res.append(test[i:i+len(left)])
+                        i += len(test[i:i+len(left)])
 
                 current = current.right
             else:
@@ -186,8 +189,8 @@ def inOrder(root, test):
 
 
 #=============
-input = "BCBCA"
-patt = "( ( ( C | B ) * C ) * A )"
+input = "BBBCBBBCA"
+patt = "( ( ( B | D ) * C ) * A )"
 t = parseTree(patt)
 traverse(t)
 ans = inOrder(t, input)
@@ -195,3 +198,5 @@ print "here", ans
 #print check(input, patt)
 
 
+#A * ( B | C )
+#( ( B | D ) * C ) | A
