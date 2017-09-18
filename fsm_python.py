@@ -1,25 +1,3 @@
-"""
-def star(sym):
-    return sym
-
-def pipe(sym_1, sym_2, key):
-    if key is 1:
-        return sym_1
-    else:
-        return sym_2
-
-def group(*args):
-    return "".join(args)
-
-
-def fms(alph):
-    ls = []
-    for i in range(10):
-        for j in range(1,3):
-            pattern = group(star("A")*i, group(pipe("B", "DA", j)), "D")
-            ls.append(pattern)
-    return ls
-"""
 
 from pythonds import Stack
 
@@ -68,8 +46,11 @@ def parseTree(pattern):
             if operatorStack.size() == 0:
                 operator = operatorStack.pop()
                 e2 = exprStack.pop()
-                e1 = exprStack.pop()
-                exprStack.push(Tree(operator, e1, e2))
+                if exprStack.size() == 0:
+                    exprStack.push(Tree(operator, e2, Tree("")))
+                else:
+                    e1 = exprStack.pop()
+                    exprStack.push(Tree(operator, e1, e2))
 
             operatorStack.push(i)
 
@@ -78,8 +59,11 @@ def parseTree(pattern):
                 operator = operatorStack.pop()
 
                 e2 = exprStack.pop()
-                e1 = exprStack.pop()
-                exprStack.push(Tree(operator, e1, e2))
+                if exprStack.size() == 0:
+                    exprStack.push(Tree(operator, e2, Tree("")))
+                else:
+                    e1 = exprStack.pop()
+                    exprStack.push(Tree(operator, e1, e2))
             operatorStack.pop()
 
         else:
@@ -154,18 +138,20 @@ def inOrder(root, test):
                         if right == test[i:i+len(right)]:
                             res.append(test[i:i+len(right)])
                             i+=len(right)
-                        elif right == "|":
-                            current = current.right
-                            continue
                         elif test[i:i+len(right)] == "":
                             return False
+                        elif right == "|":
+                            groups.push(left_res+right_res)
+                            current = current.right
+                            continue
+
 
                         groups.push(left_res+right)
 
                 elif current.data == "|":
                     left = None
                     right = None
-                    if groups.size() == 0:
+                    if groups.size() == 0 or current.left.left == None:
                         left = current.left.data
                         right = current.right.data
                     else:
@@ -189,7 +175,7 @@ def inOrder(root, test):
 
 
 #=============
-input = "BBBCBBBCA"
+input = "BC"
 patt = "( ( ( B | D ) * C ) * A )"
 t = parseTree(patt)
 traverse(t)
